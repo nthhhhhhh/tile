@@ -1,0 +1,117 @@
+#!/bin/sh
+set -e
+
+#
+### config
+#
+
+# gap size
+GS=6
+# move mouse with window
+MM=true
+
+
+#
+### error check
+#
+Err() {
+    if ! [ -x "$(command -v "$1")" ]; then
+        echo "error: $1 does not exist">&2
+        echo "see wmutils: https://github.com/wmutils/core."
+        exit 1
+    fi
+}
+
+# check if wmutils needed exist
+Err wattr
+Err lsw
+Err pfw
+Err wtp
+Err wmp
+
+
+#
+### run
+#
+
+# get current window id, width and height
+WID=$(pfw)
+# WW="$(wattr w "$WID")"
+# WH="$(wattr h "$WID")"
+
+# get screen width and height
+ROOT=$(lsw -r)
+SW=$(wattr w "$ROOT")
+SH=$(wattr h "$ROOT")
+
+# move tile
+mvtl() {
+    #$1 : x 
+    #$2 : y
+    #$3 : width
+    #$4 : height
+    wtp "$1" "$2" "$3" "$4" "$WID"
+
+    #$5 : movemouse? (bool)
+    # move mouse with window flag is on
+    if [ "$5" = true ]; then
+        x="$(echo "$1 + $3 / 2 " | bc -l)"
+        y="$(echo "$2 + $4 / 2 " | bc -l)"
+        wmp "$x" "$y"
+    fi
+}
+
+case $1 in
+    top)
+        w="$(echo "$SW - $GS * 2" | bc -l)"
+        h="$(echo "$SH/2 - $GS * 3" | bc -l)"
+        mvtl "$GS" "$GS" "$w" "$h" "$MM"
+        ;;
+    top-left)
+        w="$(echo "$SW/2 - $GS * 2" | bc -l)"
+        h="$(echo "$SH/2 - $GS * 3" | bc -l)"
+        mvtl "$GS" "$GS" "$w" "$h" "$MM"
+        ;;
+    top-right)
+        w="$(echo "$SW/2 - $GS * 1.5" | bc -l)"
+        h="$(echo "$SH/2 - $GS * 3" | bc -l)"
+        x="$(echo "$w + $GS * 2" | bc)"
+        mvtl "$x" $GS "$w" "$h" "$MM"
+        ;;
+    bottom)
+        w="$(echo "$SW - $GS * 2" | bc -l)"
+        h="$(echo "$SH/2 - $GS" | bc -l)"
+        y="$(echo "$h + $GS " | bc -l)"
+        mvtl "$GS" "$y" "$w" "$h" "$MM"
+        ;;
+    bottom-left)
+        w="$(echo "$SW/2 - $GS * 2" | bc -l)"
+        h="$(echo "$SH/2 - $GS" | bc -l)"
+        y="$(echo "$h + $GS" | bc -l)"
+        mvtl "$GS" "$y" "$w" "$h" "$MM"
+        ;;
+    bottom-right)
+        w="$(echo "$SW/2 - $GS * 1.5" | bc -l)"
+        h="$(echo "$SH/2 - $GS" | bc -l)"
+        x="$(echo "$w + $GS * 2" | bc)"
+        y="$(echo "$h + $GS" | bc -l)"
+        mvtl "$x" "$y" "$w" "$h" "$MM"
+        ;;
+    left)
+        w="$(echo "$SW/2 - $GS * 2" | bc -l)"
+        h="$(echo "$SH - $GS * 2" | bc -l)"
+        mvtl "$GS" "$GS" "$w" "$h" "$MM"
+        ;;
+    right)
+        w="$(echo "$SW/2 - $GS" | bc -l)"
+        h="$(echo "$SH - $GS * 2" | bc -l)"
+        x="$(echo "$GS + $w" | bc)"
+        mvtl "$x" "$GS" "$w" "$h" "$MM"
+        ;;
+    *)
+        printf "usage: tile <option>\\noptions:\\ntop, top-left, top-right,bottom, bottom-left, bottom-right, left, right"
+        exit 1
+        ;;
+esac
+
+exit 0
