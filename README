@@ -1,0 +1,19 @@
+tile
+====
+
+A small script to manually quarter and half tile windows in x11. 
+Depends on wmutils.
+
+Usage:
+    
+    tile <options>
+
+    options:
+        top
+        top-left
+        top-right
+        bottom
+        bottom-left
+        bottom-right
+        left
+        right
